@@ -125,8 +125,8 @@ namespace S {
         ${({ enabled }) => !enabled && "opacity: 0.5;"}
         &:hover {
             ${({ enabled }) =>
-                enabled &&
-                `
+            enabled &&
+            `
                 background-color: ${ThemeColors.PRIMARY_CONTAINER};
                 border: 1px solid ${ThemeColors.HIGHLIGHT};
             `}
@@ -280,6 +280,7 @@ export function NodeList(props: NodeListProps) {
         }
     };
 
+    // This returns small grid of nodes for each category
     const getNodesContainer = (nodes: Node[]) => (
         <S.Grid columns={2}>
             {nodes.map((node, index) => {
@@ -327,11 +328,16 @@ export function NodeList(props: NodeListProps) {
         </S.Grid>
     );
 
+    // This returns a container for each category
     const getCategoryContainer = (groups: Category[], isSubCategory = false) => {
+
+        console.log("isSubCategory: ", isSubCategory, groups);
+
         const content = (
             <>
                 {groups.map((group, index) => {
                     const isConnectionCategory = group.title === "Connections";
+                    const isAiCategory = group.title === "AI";
                     const isProjectFunctionsCategory = group.title === "Current Integration";
                     const isDataMapperCategory = isProjectFunctionsCategory && title === "Data Mappers";
                     const isAgentCategory = group.title === "Agents";
@@ -341,7 +347,8 @@ export function NodeList(props: NodeListProps) {
                         !isConnectionCategory &&
                         !isProjectFunctionsCategory &&
                         !isAgentCategory &&
-                        !isNpFunctionCategory
+                        !isNpFunctionCategory &&
+                        !isAiCategory
                     ) {
                         return null;
                     }
@@ -409,6 +416,7 @@ export function NodeList(props: NodeListProps) {
                                     </>
                                 )}
                             </S.Row>
+
                             {onAddConnection && isConnectionCategory && group.items.length === 0 && (
                                 <S.HighlightedButton onClick={handleAddConnection}>
                                     <Codicon
@@ -419,6 +427,7 @@ export function NodeList(props: NodeListProps) {
                                     Add Connection
                                 </S.HighlightedButton>
                             )}
+                            {isAiCategory && getAiContainer(group)}
                             {onAddFunction &&
                                 isProjectFunctionsCategory &&
                                 group.items.length === 0 &&
@@ -426,21 +435,21 @@ export function NodeList(props: NodeListProps) {
                                 !isSearching && (
                                     <S.HighlightedButton onClick={handleAddFunction}>
                                         <Codicon name="add" iconSx={{ fontSize: 12 }} />
-                                        {`Create ${
-                                            isDataMapperCategory
-                                                ? "Data Mapper"
-                                                : isNpFunctionCategory
+                                        {`Create ${isDataMapperCategory
+                                            ? "Data Mapper"
+                                            : isNpFunctionCategory
                                                 ? "Natural Function"
                                                 : "Function"
-                                        }`}
+                                            }`}
                                     </S.HighlightedButton>
                                 )}
-                            {group.items.length > 0 && "id" in group.items.at(0)
+
+                            {!isAiCategory && (group.items.length > 0 && "id" in group.items.at(0)
                                 ? getNodesContainer(group.items as Node[])
                                 : (onAddConnection && isConnectionCategory) ||
-                                  (onAddFunction && isProjectFunctionsCategory)
-                                ? getConnectionContainer(group.items as Category[])
-                                : getCategoryContainer(group.items as Category[], true)}
+                                    (onAddFunction && isProjectFunctionsCategory)
+                                    ? getConnectionContainer(group.items as Category[])
+                                    : getCategoryContainer(group.items as Category[], true))}
                         </S.CategoryRow>
                     );
                 })}
@@ -451,6 +460,53 @@ export function NodeList(props: NodeListProps) {
         const isEmpty = React.Children.toArray(content.props.children).every((child) => child === null);
 
         return isEmpty ? <div style={{ paddingTop: "10px" }}>No matching results found</div> : content;
+    };
+
+    const getAiContainer = (category: Category) => {
+        return (
+
+            <>
+                <S.Row style={{ paddingTop: "10px" }}>
+                    <S.Title>Model Provider</S.Title>
+                    <Button
+                        appearance="icon"
+                        tooltip="Create Data Mapper"
+                        onClick={handleAddFunction}
+                    >
+                        <Codicon name="add" />
+                    </Button>
+                </S.Row>
+                <S.HighlightedButton onClick={() => { }}>
+                    <Codicon
+                        name="add"
+                        iconSx={{ fontSize: 12 }}
+                        sx={{ display: "flex", alignItems: "center" }}
+                    />
+                    Add Model Provider
+                </S.HighlightedButton>
+
+                <S.Row style={{ paddingTop: "10px" }}>
+                    <S.Title >Vector Knowledge Base</S.Title>
+                    <Button
+                        appearance="icon"
+                        tooltip="Create Data Mapper"
+                        onClick={handleAddFunction}
+                    >
+                        <Codicon name="add" />
+                    </Button>
+                </S.Row>
+
+                <S.HighlightedButton onClick={() => { }} style={{ marginBottom: "10px" }}>
+                    <Codicon
+                        name="add"
+                        iconSx={{ fontSize: 12 }}
+                        sx={{ display: "flex", alignItems: "center" }}
+                    />
+                    Add Vector Knowledge Base
+                </S.HighlightedButton>
+                {getNodesContainer(category.items.filter((item) => "id" in item) as Node[])}
+            </>
+        );
     };
 
     // filter out category items based on search text
@@ -526,7 +582,7 @@ export function NodeList(props: NodeListProps) {
                     <S.Row>
                         <S.StyledSearchInput
                             value={searchText}
-                            placeholder={searchPlaceholder || "Search"} 
+                            placeholder={searchPlaceholder || "Search"}
                             autoFocus={true}
                             onChange={handleOnSearch}
                             size={60}
