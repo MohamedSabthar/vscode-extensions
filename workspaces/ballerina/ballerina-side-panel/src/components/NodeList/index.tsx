@@ -328,6 +328,21 @@ export function NodeList(props: NodeListProps) {
         </S.Grid>
     );
 
+    const getModelProviderContainer = (categories: Category[]) => (
+        <S.Grid columns={1}>
+            {categories.map((category, index) => (
+                // <Tooltip content={category.description} key={category.title + index + "tooltip"}>
+                <GroupList
+                    key={category.title + index + "tooltip"}
+                    category={category}
+                    expand={searchText?.length > 0}
+                    onSelect={handleAddNode}
+                />
+                // </Tooltip>
+            ))}
+        </S.Grid>
+    );
+
     // This returns a container for each category
     const getCategoryContainer = (groups: Category[], isSubCategory = false) => {
 
@@ -463,11 +478,17 @@ export function NodeList(props: NodeListProps) {
     };
 
     const getAiContainer = (category: Category) => {
-        return (
+        console.log("category: ", category);
+        const modelProvider = category.items.find(
+            (item): item is Category => !("id" in item) && item.title === "Model Provider"
+        ) || null;
 
+
+        return (
             <>
                 <S.Row style={{ paddingTop: "10px" }}>
                     <S.Title>Model Provider</S.Title>
+                    
                     <Button
                         appearance="icon"
                         tooltip="Create Data Mapper"
@@ -475,7 +496,10 @@ export function NodeList(props: NodeListProps) {
                     >
                         <Codicon name="add" />
                     </Button>
+                    
                 </S.Row>
+                {modelProvider && modelProvider.items.length > 0 && getModelProviderContainer(modelProvider.items as Category[])}
+                {modelProvider && modelProvider.items.length == 0 && 
                 <S.HighlightedButton onClick={() => { }}>
                     <Codicon
                         name="add"
@@ -483,7 +507,8 @@ export function NodeList(props: NodeListProps) {
                         sx={{ display: "flex", alignItems: "center" }}
                     />
                     Add Model Provider
-                </S.HighlightedButton>
+                </S.HighlightedButton>}
+                {/* {getModelProviderContainer(category.items as Category[])} */}
 
                 <S.Row style={{ paddingTop: "10px" }}>
                     <S.Title >Vector Knowledge Base</S.Title>
